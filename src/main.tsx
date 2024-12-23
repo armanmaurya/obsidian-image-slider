@@ -1,6 +1,29 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+// import {} from 'react-dom';
+// import React from 'react';
+import { ReactApp } from '../ReactView';
+import { Root, createRoot } from 'react-dom/client';
+import { ItemView, WorkspaceLeaf } from 'obsidian';
+import { StrictMode } from 'react';
 
 // Remember to rename these classes and interfaces!
+
+
+const CsvTable = ({ rows }: { rows: string[][] }) => {
+    return (
+        <table>
+            <tbody style={{ border: '2px solid red' }}>
+                {rows.map((cols, i) => (
+                    <tr key={i}>
+                        {cols.map((col, j) => (
+                            <td key={j}>{col}</td>
+                        ))}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+};
 
 interface MyPluginSettings {
 	mySetting: string;
@@ -13,8 +36,54 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 
+	async activateView() {
+		const { workspace } = this.app;
+
+		let leaf: WorkspaceLeaf | null = null;
+		const leaves = workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE);
+
+		if (leaves.length > 0) {
+			// A leaf with our view already exists, use that
+			leaf = leaves[0];
+		} else {
+			// Our view could not be found in the workspace, create a new leaf
+			// in the right sidebar for it
+			leaf = workspace.getRightLeaf(false);
+			await leaf.setViewState({ type: VIEW_TYPE_EXAMPLE, active: true });
+		}
+
+		// "Reveal" the leaf in case it is in a collapsed sidebar
+		workspace.revealLeaf(leaf);
+	}
+
 	async onload() {
 		await this.loadSettings();
+
+		this.registerMarkdownCodeBlockProcessor('csv', (source, el, ctx) => {
+			// console.log('csv', source);
+			const rows = source.split('\n').filter((row) => row.length > 0);
+
+			const root = createRoot(el);
+			root.render(<CsvTable rows={rows.map((row) => row.split(','))} />);
+
+			// const table = el.createEl('table');
+			// const body = table.createEl('tbody');
+
+			// for (let i = 0; i < rows.length; i++) {
+			// 	const cols = rows[i].split(',');
+
+			// 	const row = body.createEl('tr');
+
+			// 	for (let j = 0; j < cols.length; j++) {
+			// 		row.createEl('td', { text: cols[j] });
+			// 	}
+			// }
+		});
+
+		this.registerView(VIEW_TYPE_EXAMPLE, (leaf) => new ExampleView(leaf));
+		this.addRibbonIcon('dice', 'Activate view', () => {
+			this.activateView();
+		});
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
@@ -97,12 +166,12 @@ class SampleModal extends Modal {
 	}
 
 	onOpen() {
-		const {contentEl} = this;
+		const { contentEl } = this;
 		contentEl.setText('Woah!');
 	}
 
 	onClose() {
-		const {contentEl} = this;
+		const { contentEl } = this;
 		contentEl.empty();
 	}
 }
@@ -116,7 +185,7 @@ class SampleSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		const {containerEl} = this;
+		const { containerEl } = this;
 
 		containerEl.empty();
 
@@ -130,5 +199,37 @@ class SampleSettingTab extends PluginSettingTab {
 					this.plugin.settings.mySetting = value;
 					await this.plugin.saveSettings();
 				}));
+	}
+}
+
+
+const VIEW_TYPE_EXAMPLE = 'example-view';
+
+class ExampleView extends ItemView {
+	root: Root | null = null;
+
+	constructor(leaf: WorkspaceLeaf) {
+		super(leaf);
+	}
+
+	getViewType() {
+		return VIEW_TYPE_EXAMPLE;
+	}
+
+	getDisplayText() {
+		return 'Example view';
+	}
+
+	async onOpen() {
+		this.root = createRoot(this.containerEl.children[1]);
+		this.root.render(
+			<StrictMode>
+				<ReactApp />
+			</StrictMode>
+		);
+	}
+
+	async onClose() {
+		this.root?.unmount();
 	}
 }
