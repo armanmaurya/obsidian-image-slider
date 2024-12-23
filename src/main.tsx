@@ -1,28 +1,29 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 // import {} from 'react-dom';
 // import React from 'react';
 import { ReactApp } from '../ReactView';
 import { Root, createRoot } from 'react-dom/client';
 import { ItemView, WorkspaceLeaf } from 'obsidian';
 import { StrictMode } from 'react';
+import { ImageSlider } from "./ImageSlider";
 
 // Remember to rename these classes and interfaces!
 
 
 const CsvTable = ({ rows }: { rows: string[][] }) => {
-    return (
-        <table>
-            <tbody style={{ border: '2px solid red' }}>
-                {rows.map((cols, i) => (
-                    <tr key={i}>
-                        {cols.map((col, j) => (
-                            <td key={j}>{col}</td>
-                        ))}
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-    );
+	return (
+		<table>
+			<tbody style={{ border: '2px solid red' }}>
+				{rows.map((cols, i) => (
+					<tr key={i}>
+						{cols.map((col, j) => (
+							<td key={j}>{col}</td>
+						))}
+					</tr>
+				))}
+			</tbody>
+		</table>
+	);
 };
 
 interface MyPluginSettings {
@@ -59,25 +60,24 @@ export default class MyPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		this.registerMarkdownCodeBlockProcessor('csv', (source, el, ctx) => {
+		this.registerMarkdownCodeBlockProcessor('slider', (source, el, ctx) => {
 			// console.log('csv', source);
-			const rows = source.split('\n').filter((row) => row.length > 0);
+			const images = source.split('\n').filter((row) => row.length > 0);
+			let parsedImages: string[] = [];
+			images.forEach((image) => {
+				parsedImages.push(image.slice(2, image.length - 2));
+			});
+
+			let imagesUri: string[] = [];
+			parsedImages.forEach((image) => {
+				const file = this.app.vault.getAbstractFileByPath(image);
+				if (file instanceof TFile) {
+					imagesUri.push(this.app.vault.getResourcePath(file));
+				}
+			});
 
 			const root = createRoot(el);
-			root.render(<CsvTable rows={rows.map((row) => row.split(','))} />);
-
-			// const table = el.createEl('table');
-			// const body = table.createEl('tbody');
-
-			// for (let i = 0; i < rows.length; i++) {
-			// 	const cols = rows[i].split(',');
-
-			// 	const row = body.createEl('tr');
-
-			// 	for (let j = 0; j < cols.length; j++) {
-			// 		row.createEl('td', { text: cols[j] });
-			// 	}
-			// }
+			root.render(<ImageSlider images={imagesUri} />);
 		});
 
 		this.registerView(VIEW_TYPE_EXAMPLE, (leaf) => new ExampleView(leaf));
