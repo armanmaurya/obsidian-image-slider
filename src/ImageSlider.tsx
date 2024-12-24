@@ -48,7 +48,7 @@ export const ImageSlider = ({ images }: { images: string[] }) => {
             </div>
             <div style={{ display: 'flex', flexDirection: 'row', overflowX: 'hidden'}}>
                 {images.map((image, i) => {
-                    return <img key={i} ref={ref} src={image} style={{ maxWidth: '100%', transition: "transform 0.5s ease-in-out"}} />
+                    return <img key={i} ref={ref} src={image} style={{ maxWidth: '100%', transition: "transform 0.5s ease-in-out", borderRadius: "10px"}} />
                 })}
             </div>
         </div>
