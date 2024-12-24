@@ -1,9 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IoIosArrowForward } from "react-icons/io";
 import { IoIosPause } from "react-icons/io";
 import { IoIosPlay } from "react-icons/io";
 
-export const ImageSlider = ({ images }: { images: string[] }) => {
+export const ImageSlider = ({ images, borderRadius }: { images: string[], borderRadius: string | number| undefined}) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const ref = useRef<HTMLImageElement>(null);
 
@@ -46,9 +46,9 @@ export const ImageSlider = ({ images }: { images: string[] }) => {
                 <IoIosArrowForward size={28} onClick={prev} color="black" style={{transform: 'rotate(180deg)'}}/>
                 <IoIosArrowForward size={28} onClick={next} className="hover:cursor-pointer"  color="black"/>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'row', overflowX: 'hidden'}}>
+            <div style={{ display: 'flex', flexDirection: 'row', overflowX: 'hidden', borderRadius:`${borderRadius}px`}}>
                 {images.map((image, i) => {
-                    return <img key={i} ref={ref} src={image} style={{ maxWidth: '100%', transition: "transform 0.5s ease-in-out", borderRadius: "10px"}} />
+                    return <img key={i} ref={ref} src={image} style={{ maxWidth: '100%', transition: "transform 0.5s ease-in-out"}} />
                 })}
             </div>
         </div>
