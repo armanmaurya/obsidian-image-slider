@@ -18,18 +18,30 @@ export default class ImageSliderPlugin extends Plugin {
 		await this.loadSettings();
 		this.registerMarkdownCodeBlockProcessor('slider', (source, el, ctx) => {
 			// console.log('csv', source);
-			const images = source.split('\n').filter((row) => row.length > 0);
-			let parsedImages: string[] = [];
-			images.forEach((image) => {
-				parsedImages.push(image.slice(2, image.length - 2));
-			});
-			let imagesUri: string[] = [];
-			parsedImages.forEach((image) => {
-				const file = this.app.vault.getAbstractFileByPath(image);
-				if (file instanceof TFile) {
-					imagesUri.push(this.app.vault.getResourcePath(file));
-				}
-			});
+			const extractImagePaths = (text: string) => {
+				// Regex patterns
+				const wikilinkPattern = /\[\[(.*?)\]\]/g;
+				const markdownPattern = /\[.*?\]\((.*?)\)/g;
+
+				// Extract paths
+				const wikilinkPaths = [...text.matchAll(wikilinkPattern)].map(match => match[1]);
+				const markdownPaths = [...text.matchAll(markdownPattern)].map(match => match[1]);
+
+				// Combine results
+				return [...wikilinkPaths, ...markdownPaths];
+			}
+			const getResourcePaths = (imagePaths: string[]) => {
+				let imagesUri: string[] = [];
+				imagePaths.forEach((image) => {
+					const file = this.app.vault.getAbstractFileByPath(image);
+					if (file instanceof TFile) {
+						imagesUri.push(this.app.vault.getResourcePath(file));
+					}
+				});
+				return imagesUri;
+			}
+			const parsedImages = extractImagePaths(source);
+			let imagesUri = getResourcePaths(parsedImages);
 			const root = createRoot(el);
 			root.render(<ImageSlider images={imagesUri} borderRadius={this.settings.borderRadius} />);
 		});
@@ -39,7 +51,7 @@ export default class ImageSliderPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		
+
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
 
