@@ -3,8 +3,8 @@
 	"name": "Image Slider",
 	"version": "1.0.1",
 	"minAppVersion": "0.15.0",
-	"description": "This plugin allows you to create image sliders in Obsidian.",
-	"author": "Obsidian",
+	"description": "Create image sliders in Obsidian.",
+	"author": "Arrman Maurya",
 	"authorUrl": "https://obsidian.md",
 	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
