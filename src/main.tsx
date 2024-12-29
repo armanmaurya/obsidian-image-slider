@@ -17,6 +17,18 @@ interface ImageSliderSettings {
 	borderRadius: string;
 }
 
+declare module "obsidian" {
+	interface WorkspaceLeaf {
+		rebuildView(): void;
+	}
+	interface App {
+		setting: {
+			onClose: () => void;
+			closeActiveTab: () => void;
+		}
+	}
+}
+
 const DEFAULT_SETTINGS: ImageSliderSettings = {
 	borderRadius: "10",
 };
@@ -108,7 +120,7 @@ class ImageSliderSettingsTab extends PluginSettingTab {
 			app.setting.closeActiveTab();
 		}
 		// this.plugin.refreshOpenViews();
-		
+
 	}
 
 	display(): void {
